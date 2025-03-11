@@ -33,24 +33,32 @@ export class Game {
 
   public async start(): Promise<void> {
     if (this.isRunning) return;
-    await this.scene.initialize(); // Initialize scene background
-    await this.scene.addGameObject(this.player); // Initialize player
-    this.isRunning = true;
-    this.lastTime = performance.now();
-    this.gameLoop();
+    try {
+      console.log("Initializing scene...");
+      await this.scene.initialize(); // Initialize scene background
+      console.log("Scene initialized, adding player...");
+      await this.scene.addGameObject(this.player); // Initialize player
+      console.log("Player added, starting game loop...");
+      this.isRunning = true;
+      this.lastTime = performance.now();
+      this.gameLoop();
+    } catch (error) {
+      console.error("Failed to start game:", error);
+      throw error; // Re-throw to be caught in GamePage.tsx
+    }
   }
 
   public stop(): void {
     this.isRunning = false;
   }
 
-  public reset(): void {
+  public async reset(): Promise<void> {
     this.score = 0;
     this.gameOver = false;
     this.scene.getGameObjects().forEach((obj) => {
       if (obj !== this.player) this.scene.removeGameObject(obj);
     });
-    this.start();
+    await this.start();
   }
 
   private gameLoop(): void {

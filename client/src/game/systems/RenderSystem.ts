@@ -19,6 +19,7 @@ export class RenderSystem {
   }
 
   public render(): void {
+    console.log("Rendering frame...");
     this.renderer.render(this.scene.getScene(), this.scene.getCamera());
   }
 
@@ -31,7 +32,6 @@ export class RenderSystem {
     this.renderer.dispose();
   }
 
-  // Add this method to expose the canvas
   public getCanvas(): HTMLCanvasElement {
     return this.renderer.domElement;
   }

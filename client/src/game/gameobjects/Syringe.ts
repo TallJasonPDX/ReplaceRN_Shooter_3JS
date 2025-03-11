@@ -17,41 +17,57 @@ export class Syringe extends GameObject {
     this.events = events;
     this.canvas = canvas;
     this.transform.position.y = -13; // Bottom of screen
-    this.setupEventListeners();
+    // Remove setupEventListeners from constructor
   }
 
   protected async createMesh(): Promise<THREE.Mesh> {
-    const texture = await AssetLoader.loadTexture("/src/assets/syringe.png");
-    const geometry = new THREE.PlaneGeometry(1, 1);
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-    });
-    return new THREE.Mesh(geometry, material);
+    try {
+      const texture = await AssetLoader.loadTexture("/src/assets/syringe.png");
+      const geometry = new THREE.PlaneGeometry(1, 1);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+      });
+      return new THREE.Mesh(geometry, material);
+    } catch (error) {
+      console.warn("Failed to load syringe texture, using fallback material");
+      const geometry = new THREE.PlaneGeometry(1, 1);
+      const material = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red syringe
+      return new THREE.Mesh(geometry, material);
+    }
   }
 
   public async initialize(): Promise<void> {
     await super.initialize();
-    this.setupEventListeners(); // Move this here if it depends on mesh
+    this.setupEventListeners(); // Move here
   }
 
   private setupEventListeners(): void {
-    this.events.on("MOVE", ({ x }) => {
-      if (!this.isDragging) {
-        this.transform.position.x = THREE.MathUtils.clamp(
-          this.transform.position.x + x * 0.1,
-          -6,
-          6,
-        );
-      }
-    });
+    try {
+      this.events.on("MOVE", ({ x }) => {
+        if (!this.isDragging) {
+          this.transform.position.x = THREE.MathUtils.clamp(
+            this.transform.position.x + x * 0.1,
+            -6,
+            6,
+          );
+        }
+      });
 
-    window.addEventListener("mousedown", (e) => this.startDrag(e));
-    window.addEventListener("mousemove", (e) => this.updateDrag(e));
-    window.addEventListener("mouseup", () => this.release());
-    window.addEventListener("touchstart", (e) => this.startDrag(e.touches[0]));
-    window.addEventListener("touchmove", (e) => this.updateDrag(e.touches[0]));
-    window.addEventListener("touchend", () => this.release());
+      window.addEventListener("mousedown", (e) => this.startDrag(e));
+      window.addEventListener("mousemove", (e) => this.updateDrag(e));
+      window.addEventListener("mouseup", () => this.release());
+      window.addEventListener("touchstart", (e) =>
+        this.startDrag(e.touches[0]),
+      );
+      window.addEventListener("touchmove", (e) =>
+        this.updateDrag(e.touches[0]),
+      );
+      window.addEventListener("touchend", () => this.release());
+    } catch (error) {
+      console.error("Error setting up event listeners in Syringe:", error);
+      throw error;
+    }
   }
 
   private startDrag(event: MouseEvent | Touch): void {

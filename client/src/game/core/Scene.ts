@@ -7,14 +7,13 @@ export class Scene {
   private scene: THREE.Scene;
   private camera: THREE.OrthographicCamera;
   private gameObjects: GameObject[];
-  private background: THREE.Mesh;
+  private background: THREE.Mesh | null = null; // Initialize as null
 
   constructor() {
     this.scene = new THREE.Scene();
     this.camera = this.createOrthographicCamera();
     this.gameObjects = [];
-    this.background = this.createBackground();
-    this.scene.add(this.background); // Background is synchronous for now
+    // Do not call createBackground or add to scene here
   }
 
   private createOrthographicCamera(): THREE.OrthographicCamera {
@@ -45,7 +44,9 @@ export class Scene {
 
   public async initialize(): Promise<void> {
     this.background = await this.createBackground();
-    this.scene.add(this.background);
+    if (this.background) {
+      this.scene.add(this.background);
+    }
   }
 
   public getScene(): THREE.Scene {
@@ -58,9 +59,12 @@ export class Scene {
 
   public async addGameObject(gameObject: GameObject): Promise<void> {
     await gameObject.initialize();
-    if (gameObject.getMesh()) {
+    const mesh = gameObject.getMesh();
+    if (mesh) {
       this.gameObjects.push(gameObject);
-      this.scene.add(gameObject.getMesh()!); // Use ! because we just initialized
+      this.scene.add(mesh);
+    } else {
+      console.warn("Failed to add game object: mesh is null", gameObject);
     }
   }
 
@@ -68,8 +72,9 @@ export class Scene {
     const index = this.gameObjects.indexOf(gameObject);
     if (index !== -1) {
       this.gameObjects.splice(index, 1);
-      if (gameObject.getMesh()) {
-        this.scene.remove(gameObject.getMesh());
+      const mesh = gameObject.getMesh();
+      if (mesh) {
+        this.scene.remove(mesh);
       }
     }
   }

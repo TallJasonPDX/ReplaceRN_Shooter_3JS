@@ -14,7 +14,22 @@ export default function GamePage() {
 
     const game = new Game(containerRef.current);
     gameRef.current = game;
-    game.start().catch((err) => console.error("Game start failed:", err));
+    game.start().catch((err) => {
+      console.error("Game start failed:", err);
+      // Log more details about the error
+      if (err instanceof Event) {
+        console.log("Event details:", {
+          type: err.type,
+          target: err.target,
+          currentTarget: err.currentTarget,
+          eventPhase: err.eventPhase,
+          bubbles: err.bubbles,
+          cancelable: err.cancelable,
+          defaultPrevented: err.defaultPrevented,
+          timeStamp: err.timeStamp,
+        });
+      }
+    });
 
     const updateUI = () => {
       setScore(game.score);
