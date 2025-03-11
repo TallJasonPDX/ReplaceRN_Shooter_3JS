@@ -13,7 +13,6 @@ export class Scene {
     this.scene = new THREE.Scene();
     this.camera = this.createOrthographicCamera();
     this.gameObjects = [];
-    // Do not call createBackground or add to scene here
   }
 
   private createOrthographicCamera(): THREE.OrthographicCamera {
@@ -39,7 +38,9 @@ export class Scene {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     const geometry = new THREE.PlaneGeometry(1320 / 100, 2868 / 100);
     const material = new THREE.MeshBasicMaterial({ map: texture });
-    return new THREE.Mesh(geometry, material);
+    const background = new THREE.Mesh(geometry, material);
+    background.position.z = -10; // Set background behind all objects
+    return background;
   }
 
   public async initialize(): Promise<void> {

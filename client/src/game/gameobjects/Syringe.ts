@@ -11,13 +11,14 @@ export class Syringe extends GameObject {
   private isDragging: boolean = false;
   private pullBack: number = 0;
   private maxPullBack: number = 2;
+  private startY: number = 0; // Store initial y position on drag start
 
   constructor(events: EventEmitter, canvas: HTMLCanvasElement) {
     super();
     this.events = events;
     this.canvas = canvas;
-    this.transform.position.y = -13; // Bottom of screen
-    // Remove setupEventListeners from constructor
+    this.transform.position.y = -12; // Bottom of screen
+    this.transform.zPosition = 1; // Ensure syringe is in front of nurses (max z = 0)
   }
 
   protected async createMesh(): Promise<THREE.Mesh> {
@@ -39,7 +40,7 @@ export class Syringe extends GameObject {
 
   public async initialize(): Promise<void> {
     await super.initialize();
-    this.setupEventListeners(); // Move here
+    this.setupEventListeners();
   }
 
   private setupEventListeners(): void {
@@ -72,25 +73,49 @@ export class Syringe extends GameObject {
 
   private startDrag(event: MouseEvent | Touch): void {
     this.isDragging = true;
+    console.log("Drag started at:", event.clientX, event.clientY);
+    const rect = this.canvas.getBoundingClientRect();
+    const y = ((event.clientY - rect.top) / rect.height) * 28 - 14;
+    this.startY = y; // Record initial y position
     this.updateDrag(event);
   }
 
   private updateDrag(event: MouseEvent | Touch): void {
     if (!this.isDragging || !this.mesh) return;
     const rect = this.canvas.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 12 - 6;
-    const y = ((event.clientY - rect.top) / rect.height) * 28 - 14;
+    const x = ((event.clientX - rect.left) / rect.width) * 12 - 6; // Normalize to game width (-6 to 6)
+    const y = ((event.clientY - rect.top) / rect.height) * 28 - 14; // Normalize to game height (-14 to 14)
     this.transform.position.x = THREE.MathUtils.clamp(x, -6, 6);
-    this.pullBack = THREE.MathUtils.clamp(-13 - y, 0, this.maxPullBack);
+    const deltaY = y - this.startY; // Positive when dragging down (y increases downward)
+    this.pullBack = THREE.MathUtils.clamp(deltaY, 0, this.maxPullBack); // Pull back increases with downward drag
+    console.log(
+      "Dragging: x=",
+      x,
+      "y=",
+      y,
+      "startY=",
+      this.startY,
+      "deltaY=",
+      deltaY,
+      "pullBack=",
+      this.pullBack,
+    );
   }
 
   private release(): void {
+    console.log("Released with pullBack:", this.pullBack);
     if (this.isDragging && this.pullBack > 0 && this.mesh) {
       const bullet = new Bullet(this.transform.position.clone(), this.pullBack);
       this.events.emit("BULLET_FIRED", bullet);
+      console.log(
+        "Bullet fired at position:",
+        this.transform.position.x,
+        this.transform.position.y,
+      );
     }
     this.isDragging = false;
     this.pullBack = 0;
+    this.startY = 0; // Reset startY
   }
 
   public update(deltaTime: number): void {

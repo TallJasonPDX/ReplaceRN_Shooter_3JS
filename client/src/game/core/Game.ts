@@ -18,7 +18,7 @@ export class Game {
   private isRunning: boolean = false;
   private player: Syringe;
   private spawnTimer: number = 0;
-  private spawnInterval: number = 2;
+  private spawnInterval: number = 3;
   public score: number = 0;
   public gameOver: boolean = false;
 

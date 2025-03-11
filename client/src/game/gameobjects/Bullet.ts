@@ -9,7 +9,8 @@ export class Bullet extends GameObject {
   constructor(position: THREE.Vector2, pullBack: number) {
     super();
     this.transform.position.copy(position);
-    this.speed = 5 + pullBack * 5;
+    this.transform.zPosition = 0.5; // Ensure bullet is in front of nurses but behind syringe
+    this.speed = 5 + pullBack * 5; // Speed increases with pullBack
   }
 
   protected async createMesh(): Promise<THREE.Mesh> {
