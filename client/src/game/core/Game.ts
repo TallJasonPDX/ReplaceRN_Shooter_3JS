@@ -1,9 +1,12 @@
-import * as THREE from 'three';
-import { Scene } from './Scene';
-import { InputSystem } from '../systems/InputSystem';
-import { RenderSystem } from '../systems/RenderSystem';
-import { PhysicsSystem } from '../systems/PhysicsSystem';
-import { EventEmitter } from '../utils/EventEmitter';
+// File: client/src/game/core/Game.ts
+import * as THREE from "three";
+import { Scene } from "./Scene";
+import { InputSystem } from "../systems/InputSystem";
+import { RenderSystem } from "../systems/RenderSystem";
+import { PhysicsSystem } from "../systems/PhysicsSystem";
+import { EventEmitter } from "../utils/EventEmitter";
+import { Syringe } from "../gameobjects/Syringe";
+import { RobotNurse } from "../gameobjects/RobotNurse";
 
 export class Game {
   private scene: Scene;
@@ -13,17 +16,25 @@ export class Game {
   private events: EventEmitter;
   private lastTime: number = 0;
   private isRunning: boolean = false;
+  private player: Syringe;
+  private spawnTimer: number = 0;
+  private spawnInterval: number = 2;
+  public score: number = 0;
+  public gameOver: boolean = false;
 
   constructor(container: HTMLElement) {
     this.events = new EventEmitter();
     this.scene = new Scene();
     this.inputSystem = new InputSystem(this.events);
     this.renderSystem = new RenderSystem(container, this.scene);
-    this.physicsSystem = new PhysicsSystem(this.events);
+    this.physicsSystem = new PhysicsSystem(this.events, this);
+    this.player = new Syringe(this.events, this.renderSystem.getCanvas());
   }
 
-  public start(): void {
+  public async start(): Promise<void> {
     if (this.isRunning) return;
+    await this.scene.initialize(); // Initialize scene background
+    await this.scene.addGameObject(this.player); // Initialize player
     this.isRunning = true;
     this.lastTime = performance.now();
     this.gameLoop();
@@ -31,6 +42,15 @@ export class Game {
 
   public stop(): void {
     this.isRunning = false;
+  }
+
+  public reset(): void {
+    this.score = 0;
+    this.gameOver = false;
+    this.scene.getGameObjects().forEach((obj) => {
+      if (obj !== this.player) this.scene.removeGameObject(obj);
+    });
+    this.start();
   }
 
   private gameLoop(): void {
@@ -47,9 +67,22 @@ export class Game {
   }
 
   private update(deltaTime: number): void {
+    if (this.gameOver) return;
+
     this.inputSystem.update();
     this.physicsSystem.update(deltaTime);
     this.scene.update(deltaTime);
+
+    this.spawnTimer += deltaTime;
+    if (this.spawnTimer >= this.spawnInterval) {
+      this.spawnEnemy();
+      this.spawnTimer = 0;
+    }
+  }
+
+  private async spawnEnemy(): Promise<void> {
+    const nurse = new RobotNurse();
+    await this.scene.addGameObject(nurse);
   }
 
   private render(): void {

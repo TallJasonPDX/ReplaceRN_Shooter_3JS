@@ -1,22 +1,29 @@
-import * as THREE from 'three';
-import { Transform } from './Transform';
+// File: client/src/game/components/GameObject.ts
+import * as THREE from "three";
+import { Transform } from "./Transform";
 
 export abstract class GameObject {
-  protected mesh: THREE.Mesh;
+  protected mesh: THREE.Mesh | null = null; // Initialize as null
   protected transform: Transform;
 
   constructor() {
     this.transform = new Transform();
-    this.mesh = this.createMesh();
   }
 
-  protected abstract createMesh(): THREE.Mesh;
+  protected abstract createMesh(): Promise<THREE.Mesh>;
+
+  public async initialize(): Promise<void> {
+    this.mesh = await this.createMesh();
+    this.transform.update(this.mesh); // Initial update after mesh is created
+  }
 
   public update(deltaTime: number): void {
-    this.transform.update(this.mesh);
+    if (this.mesh) {
+      this.transform.update(this.mesh);
+    }
   }
 
-  public getMesh(): THREE.Mesh {
+  public getMesh(): THREE.Mesh | null {
     return this.mesh;
   }
 

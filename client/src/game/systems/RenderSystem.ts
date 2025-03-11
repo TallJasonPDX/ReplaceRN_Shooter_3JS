@@ -1,5 +1,6 @@
-import * as THREE from 'three';
-import { Scene } from '../core/Scene';
+// File: client/src/game/systems/RenderSystem.ts
+import * as THREE from "three";
+import { Scene } from "../core/Scene";
 
 export class RenderSystem {
   private renderer: THREE.WebGLRenderer;
@@ -9,9 +10,9 @@ export class RenderSystem {
     this.scene = scene;
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
-      alpha: true
+      alpha: true,
     });
-    
+
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(this.renderer.domElement);
@@ -28,5 +29,10 @@ export class RenderSystem {
 
   public cleanup(): void {
     this.renderer.dispose();
+  }
+
+  // Add this method to expose the canvas
+  public getCanvas(): HTMLCanvasElement {
+    return this.renderer.domElement;
   }
 }
