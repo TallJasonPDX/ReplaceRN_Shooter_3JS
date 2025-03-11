@@ -17,14 +17,14 @@ export class Syringe extends GameObject {
     super();
     this.events = events;
     this.canvas = canvas;
-    this.transform.position.y = -12; // Bottom of screen
+    this.transform.position.y = -10; // Bottom of screen
     this.transform.zPosition = 1; // Ensure syringe is in front of nurses (max z = 0)
   }
 
   protected async createMesh(): Promise<THREE.Mesh> {
     try {
       const texture = await AssetLoader.loadTexture("/src/assets/syringe.png");
-      const geometry = new THREE.PlaneGeometry(1, 1);
+      const geometry = new THREE.PlaneGeometry(2, 4);
       const material = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
@@ -121,7 +121,7 @@ export class Syringe extends GameObject {
   public update(deltaTime: number): void {
     super.update(deltaTime);
     if (this.mesh) {
-      this.transform.position.y = -13 + this.pullBack * 0.1; // Visual feedback
+      this.transform.position.y = -10 + this.pullBack * 0.1; // Visual feedback
     }
   }
 }
