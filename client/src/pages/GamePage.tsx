@@ -8,16 +8,23 @@ export default function GamePage() {
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Initialize game
     const game = new Game(containerRef.current);
     gameRef.current = game;
     game.start();
 
+    // Handle window resize
     const handleResize = () => {
       if (containerRef.current) {
-        game.resize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+        const { clientWidth, clientHeight } = containerRef.current;
+        game.resize(clientWidth, clientHeight);
       }
     };
 
+    // Initial resize
+    handleResize();
+
+    // Add resize listener
     window.addEventListener('resize', handleResize);
 
     return () => {
